@@ -1,6 +1,6 @@
 from sys import argv
 from collections import OrderedDict
-import json
+import json, time
 
 class Serializer():
 	"""docstring for Serializer"""
@@ -15,11 +15,12 @@ class Serializer():
 			exit(0)
 		return file
 
-	def serializeJSON(self, inFileName, outFileName):
+	def serializeJSON(self, inFileName, outFileName, timer = False):
 		inFile = self.readFile(inFileName, 'r')
 		outFile = self.readFile(outFileName, 'w')
 		allRecords = []
 		lines = inFile.readlines()
+		t0 = time.time()
 		for line in lines:
 			line = line[:-1]
 			colonSeparated = line.split(':')
@@ -35,15 +36,19 @@ class Serializer():
 				record["CourseMarks"].append(markRecord)
 			record["RollNo"] = int(colonSeparated[0].split(',')[1])
 			allRecords.append(record)
+		t1 = time.time()
+		if timer:
+			print "Time Taken: " + str((t1 - t0)*1000)[:-8] + "ms"
 		json.dump(allRecords, outFile, separators=(',', ':'))
 		outFile.close()
 		inFile.close()
 
-	def deSerializeJSON(self, inFileName, outFileName):
+	def deSerializeJSON(self, inFileName, outFileName, timer = False):
 		inFile = self.readFile(inFileName, 'r')
 		outFile = self.readFile(outFileName, 'w')
 		data = json.load(inFile)
 		allRecords = []
+		t0 = time.time()
 		for jsonRecord in data:
 			record = ""
 			record += jsonRecord["Name"]
@@ -55,10 +60,13 @@ class Serializer():
 					record += ","
 					record += str(course["CourseScore"])
 			allRecords.append(record)
+		t1 = time.time()
+		if timer:
+			print "Time Taken: " + str((t1 - t0)*1000)[:-8] + "ms"
 		for record in allRecords:
 			outFile.write(record + "\n")
 		outFile.close()
 		inFile.close()
 
 s = Serializer()
-s.deSerializeJSON('out', 'in') 
+s.serializeJSON('in', 'out', True) 
