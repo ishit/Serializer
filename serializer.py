@@ -1,6 +1,6 @@
 from sys import argv
 from collections import OrderedDict
-import json, time
+import json, time, os
 
 class Serializer():
 	"""docstring for Serializer"""
@@ -38,12 +38,15 @@ class Serializer():
 			allRecords.append(record)
 		t1 = time.time()
 		if timer:
-			print "Time Taken: " + str((t1 - t0)*1000)[:-8] + "ms"
+			size = os.path.getsize(inFileName)
+			elapsedTime = (t1 - t0) * 1000
+			print "Time Taken: " + str(elapsedTime)[:-8] + "ms"
+			print "Serialization Rate: " + str(int(size/elapsedTime)) + "Kbps"
 		json.dump(allRecords, outFile, separators=(',', ':'))
 		outFile.close()
 		inFile.close()
 
-	def deSerializeJSON(self, inFileName, outFileName, timer = False):
+	def deSerializeJSON(self, inFileName, outFileName, timer = False	):
 		inFile = self.readFile(inFileName, 'r')
 		outFile = self.readFile(outFileName, 'w')
 		data = json.load(inFile)
@@ -62,11 +65,46 @@ class Serializer():
 			allRecords.append(record)
 		t1 = time.time()
 		if timer:
-			print "Time Taken: " + str((t1 - t0)*1000)[:-8] + "ms"
+			size = os.path.getsize(inFileName)
+			elapsedTime = (t1 - t0) * 1000
+			print "Time Taken: " + str(elapsedTime)[:-8] + "ms"
+			print "De-serialization Rate: " + str(int(size/elapsedTime)) + "Kbps"
 		for record in allRecords:
 			outFile.write(record + "\n")
 		outFile.close()
 		inFile.close()
 
-s = Serializer()
-s.serializeJSON('in', 'out', True) 
+def printTemplate():
+	print """Run as:
+	python serialize.py -m [method(json/protobuf)] [OPTION] -i [input file name] -o [output file name]
+	OPTIONS:
+		-t : Timer in millseconds.
+		-d : Deserialize. Default is serialization."""
+
+def parseArguments():
+	s = Serializer()
+	method = ""
+	for i in range(1, len(argv)):
+		if argv[i] == "-i":
+			inFileName = argv[i + 1]
+		elif argv[i] == "-o":
+			outFileName = argv[i + 1]
+		elif argv[i] == "-m":
+			method = argv[i + 1]
+
+	if method == "json":
+		if "-d" in argv:
+			if "-t" in argv:
+				s.deSerializeJSON(inFileName, outFileName, True)
+			else:
+				s.deSerializeJSON(inFileName, outFileName)
+		else:
+			if "-t" in argv:
+				s.serializeJSON(inFileName, outFileName, True) 
+			else:
+				s.serializeJSON(inFileName, outFileName)
+
+	else:
+		printTemplate()
+
+parseArguments()
