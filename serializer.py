@@ -39,5 +39,26 @@ class Serializer():
 		outFile.close()
 		inFile.close()
 
+	def deSerializeJSON(self, inFileName, outFileName):
+		inFile = self.readFile(inFileName, 'r')
+		outFile = self.readFile(outFileName, 'w')
+		data = json.load(inFile)
+		allRecords = []
+		for jsonRecord in data:
+			record = ""
+			record += jsonRecord["Name"]
+			record += "," + str(jsonRecord["RollNo"])
+			if "CourseMarks" in jsonRecord:
+				for course in jsonRecord["CourseMarks"]:
+					record += ":"
+					record += course["CourseName"]
+					record += ","
+					record += str(course["CourseScore"])
+			allRecords.append(record)
+		for record in allRecords:
+			outFile.write(record + "\n")
+		outFile.close()
+		inFile.close()
+
 s = Serializer()
-s.serializeJSON('input_sample', 'out') 
+s.deSerializeJSON('out', 'in') 
